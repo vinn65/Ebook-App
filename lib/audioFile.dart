@@ -23,17 +23,17 @@ class _AudioFileState extends State<AudioFile> {
   @override
   void initState() {
     super.initState();
-    this.widget.advancedPlayer.onDurationChanged.listen((d) {
+    widget.advancedPlayer.onDurationChanged.listen((d) {
       setState(() {
         _duration = d;
       });
     });
-    this.widget.advancedPlayer.onPositionChanged.listen((p) {
+    widget.advancedPlayer.onPositionChanged.listen((p) {
       setState(() {
         _position = p;
       });
     });
-    this.widget.advancedPlayer.setSource(UrlSource(path)); // Updated line
+    widget.advancedPlayer.setSource(UrlSource(path)); // Updated line
   }
 
   Widget btnStart() {
@@ -41,44 +41,85 @@ class _AudioFileState extends State<AudioFile> {
       padding: const EdgeInsets.only(bottom: 10),
       onPressed: () {
         if (!isPlaying) {
-          this.widget.advancedPlayer.play(UrlSource(path));
+          widget.advancedPlayer.play(UrlSource(path));
           setState(() {
             isPlaying = true;
           });
         } else {
-          this.widget.advancedPlayer.pause();
+          widget.advancedPlayer.pause();
           setState(() {
             isPlaying = false;
           });
         }
       },
-      icon: Icon(isPlaying ? _icons[1] : _icons[0]),
+      icon: Icon(
+        isPlaying ? _icons[1] : _icons[0],
+        size: 50,
+        color: Colors.blue,
+      ),
     );
   }
 
   Widget loadAsset() {
-    return Container(
-      child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            btnStart(),
-          ]),
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      mainAxisSize: MainAxisSize.min, // Adjust the size of the Row
+      children: [
+        Flexible(
+          // Wrap btnStart in Flexible
+          child: btnStart(),
+        ),
+      ],
+    );
+  }
+
+  Widget slider() {
+    return Flexible(
+      child: Slider(
+        activeColor: Colors.red,
+        inactiveColor: Colors.grey,
+        value: _position.inSeconds.toDouble(),
+        min: 0.0,
+        max: _duration.inSeconds.toDouble(),
+        onChanged: (double value) {
+          setState(() {
+            _position = Duration(seconds: value.toInt());
+            widget.advancedPlayer.seek(_position);
+          });
+        },
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Container(
+      padding: const EdgeInsets.all(20.0),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Padding(
             padding: const EdgeInsets.only(left: 20, right: 20),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [],
+              children: [
+                Text(
+                  '${_position.inHours}:${(_position.inMinutes % 60).toString().padLeft(2, '0')}:${(_position.inSeconds % 60).toString().padLeft(2, '0')}',
+                  style: TextStyle(
+                    fontSize: 16,
+                  ),
+                ),
+                Text(
+                  '${_duration.inHours}:${(_duration.inMinutes % 60).toString().padLeft(2, '0')}:${(_duration.inSeconds % 60).toString().padLeft(2, '0')}',
+                  style: TextStyle(
+                    fontSize: 16,
+                  ),
+                )
+              ],
             ),
           ),
+          slider(),
           loadAsset(),
         ],
       ),
